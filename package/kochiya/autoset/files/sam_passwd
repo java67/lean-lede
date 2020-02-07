@@ -1,0 +1,4 @@
+#!/bin/sh /etc/rc.common
+
+passwd1=$(uci get samba.@samba[0].passwd1)
+( echo $passwd1;echo $passwd1 )  | /usr/sbin/smbpasswd -s -a kochiya

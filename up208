@@ -1,0 +1,164 @@
+diff --git a/package/lean/luci-app-sfe/luasrc/controller/sfe.lua b/package/lean/luci-app-sfe/luasrc/controller/sfe.lua
+index b21a71d268..d509758769 100644
+--- a/package/lean/luci-app-sfe/luasrc/controller/sfe.lua
++++ b/package/lean/luci-app-sfe/luasrc/controller/sfe.lua
+@@ -5,7 +5,30 @@ function index()
+ 		return
+ 	end
+ 	local page
+-	page = entry({"admin", "network", "sfe"}, cbi("sfe"), _("SFE Acceleration"), 100)
++	page = entry({"admin", "network", "sfe"}, cbi("sfe"), _("Turbo ACC Center"), 100)
+ 	page.i18n = "sfe"
+ 	page.dependent = true
++	
++	entry({"admin", "network", "sfe", "status"}, call("action_status"))
+ end
++
++local function is_running()
++	return luci.sys.call("lsmod | grep fast_classifier >/dev/null") == 0
++end
++
++local function is_bbr()
++	return luci.sys.call("sysctl net.ipv4.tcp_congestion_control | grep bbr >/dev/null") == 0
++end
++
++local function is_fullcone()
++	return luci.sys.call("iptables -t nat -L -n --line-numbers | grep FULLCONENAT >/dev/null") == 0
++end
++
++function action_status()
++	luci.http.prepare_content("application/json")
++	luci.http.write_json({
++		run_state = is_running(),
++		down_state = is_bbr(),
++		up_state = is_fullcone()
++	})
++end
+\ No newline at end of file
+diff --git a/package/lean/luci-app-sfe/luasrc/model/cbi/sfe.lua b/package/lean/luci-app-sfe/luasrc/model/cbi/sfe.lua
+index 5ca2d1f82b..7d17141b02 100644
+--- a/package/lean/luci-app-sfe/luasrc/model/cbi/sfe.lua
++++ b/package/lean/luci-app-sfe/luasrc/model/cbi/sfe.lua
+@@ -1,38 +1,30 @@
+-local m,s,o
+-local SYS  = require "luci.sys"
+-
+-
+-if SYS.call("lsmod | grep fast_classifier >/dev/null") == 0 then
+-	Status = translate("<strong><font color=\"green\">Shortcut Forwarding Engine is Running</font></strong>")
+-else
+-	Status = translate("<strong><font color=\"red\">Shortcut Forwarding Engine is Not Running</font></strong>")
+-end
+ 
+ m = Map("sfe")
+-m.title	= translate("Shortcut Forwarding Engine Acceleration Settings")
++m.title	= translate("Turbo ACC Acceleration Settings")
+ m.description = translate("Opensource Qualcomm Shortcut FE driver (Fast Path)")
+ 
++m:append(Template("sfe/status"))
++
+ s = m:section(TypedSection, "sfe", "")
+ s.addremove = false
+ s.anonymous = true
+-s.description = translate(string.format("%s<br /><br />", Status))
++
+ 
+ enable = s:option(Flag, "enabled", translate("Enable"))
+ enable.default = 0
+ enable.rmempty = false
++enable.description = translate("Enable Fast Path offloading for connections. (decrease cpu load / increase routing throughput)")
+ 
+-wifi = s:option(Flag, "wifi", translate("Wireless Acceleration"))
++wifi = s:option(Flag, "wifi", translate("Bridge Acceleration"))
+ wifi.default = 0
+ wifi.rmempty = false
+-wifi.description = translate("Enable Wireless Bridge Acceleration")
++wifi.description = translate("Enable Bridge Acceleration (may be functional conflict with bridge-mode VPN Server)")
++wifi:depends("enabled", 1)
+ 
+ ipv6 = s:option(Flag, "ipv6", translate("IPv6 Acceleration"))
+ ipv6.default = 0
+ ipv6.rmempty = false
+ ipv6.description = translate("Enable IPv6 Acceleration")
+-
+---function m.on_after_commit(self)
+-
+---end
++ipv6:depends("enabled", 1)
+ 
+ return m
+diff --git a/package/lean/luci-app-sfe/luasrc/view/sfe/status.htm b/package/lean/luci-app-sfe/luasrc/view/sfe/status.htm
+new file mode 100644
+index 0000000000..87f09fba28
+--- /dev/null
++++ b/package/lean/luci-app-sfe/luasrc/view/sfe/status.htm
+@@ -0,0 +1,21 @@
++<fieldset class="cbi-section">
++	<legend><%:Running Status%></legend>
++	<table width="100%" cellspacing="10" id="_xlnetacc_status_table">
++		<tr><td width="33%">SFE 加速状态</td><td id="_run_state"><em><%:Collecting data...%></em></td></tr>
++		<tr><td width="33%">BBR 加速</td><td id="_down_state"><em><%:Collecting data...%></em></td></tr>
++		<tr><td width="33%">FULLCONE NAT加速</td><td id="_up_state"><em><%:Collecting data...%></em></td></tr>
++	</table>
++</fieldset>
++
++<script type="text/javascript">//<![CDATA[
++	var run_state = document.getElementById('_run_state');
++	var down_state = document.getElementById('_down_state');
++	var up_state = document.getElementById('_up_state');
++	XHR.poll(5, '<%=luci.dispatcher.build_url("admin", "network", "sfe", "status")%>', null, function(x, status) {
++		if ( x && x.status == 200 ) {
++			run_state.innerHTML = status.run_state ? '<em><b><font color=green><%:RUNNING%></font></b></em>' : '<em><b><font color=red><%:NOT RUNNING%></font></b></em>';
++			down_state.innerHTML = status.down_state ? '<em><b><font color=green><%:RUNNING%></font></b></em>' : '<em><b><font color=red><%:NOT RUNNING%></font></b></em>';
++			up_state.innerHTML = status.up_state ? '<em><b><font color=green><%:RUNNING%></font></b></em>' : '<em><b><font color=red><%:NOT RUNNING%></font></b></em>';
++		}
++	});
++//]]></script>
+diff --git a/package/lean/luci-app-sfe/po/zh-cn/sfe.po b/package/lean/luci-app-sfe/po/zh-cn/sfe.po
+index 428b86fe19..7505ec8ebd 100644
+--- a/package/lean/luci-app-sfe/po/zh-cn/sfe.po
++++ b/package/lean/luci-app-sfe/po/zh-cn/sfe.po
+@@ -1,11 +1,11 @@
+ msgid "SFE Acceleration"
+ msgstr "SFE 转发加速"
+ 
+-msgid "<strong><font color=\"green\">Shortcut Forwarding Engine is Running</font></strong>"
+-msgstr "<strong><font color=\"green\">SFE 转发加速引擎正在运行</font></strong>"
++msgid "Turbo ACC Center"
++msgstr "Turbo ACC 网络加速"
+ 
+-msgid "<strong><font color=\"red\">Shortcut Forwarding Engine is Not Running</font></strong>"
+-msgstr "<strong><font color=\"red\">SFE 转发加速引擎未运行</font></strong>"
++msgid "Turbo ACC Acceleration Settings"
++msgstr "Turbo ACC 网络加速设置"
+ 
+ msgid "Shortcut Forwarding Engine Acceleration Settings"
+ msgstr "SFE 转发加速引擎设置"
+@@ -16,20 +16,17 @@ msgstr "来自高通开源的 Shortcut FE 转发加速引擎 (Fast Path)"
+ msgid "Enable"
+ msgstr "启用"
+ 
+-msgid "Wireless Acceleration"
+-msgstr "无线加速"
++msgid "Enable Fast Path offloading for connections. (decrease cpu load / increase routing throughput)"
++msgstr "开启 Fast Path 转发加速. (降低CPU占用 / 增强路由转发性能，和多WAN或者QOS功能可能会冲突)"
+ 
+-msgid "Enable Wireless Bridge Acceleration"
+-msgstr "开启无线桥接加速"
++msgid "Bridge Acceleration"
++msgstr "桥接加速"
++
++msgid "Enable Bridge Acceleration (may be functional conflict with bridge-mode VPN Server)"
++msgstr "启用桥接加速 (可能会和路由器上桥接模式的VPN服务器冲突)"
+ 
+ msgid "IPv6 Acceleration"
+ msgstr "IPv6 加速"
+ 
+ msgid "Enable IPv6 Acceleration"
+ msgstr "开启IPv6加速"
+-
+-
+-
+-
+-
+-

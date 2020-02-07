@@ -1,0 +1,1272 @@
+From f84981f6f8a404f6d0261b8250bc3875d6518ad0 Mon Sep 17 00:00:00 2001
+From: Hauke Mehrtens <hauke@hauke-m.de>
+Date: Sun, 26 Jan 2020 19:53:38 +0100
+Subject: [PATCH] mac80211: Update to version 4.19.98
+
+The removed patches are all integrated in the upstream version now.
+
+Signed-off-by: Hauke Mehrtens <hauke@hauke-m.de>
+---
+ package/kernel/mac80211/Makefile              |  6 +-
+ .../ath/930-ath10k_add_tpt_led_trigger.patch  |  4 +-
+ ...-of-peer_bw_rxnss_override-parameter.patch |  2 +-
+ ...dling-for-VHT160-in-recent-firmwares.patch |  2 +-
+ ...rolling-support-for-various-chipsets.patch | 14 ++--
+ ...75-ath10k-use-tpt-trigger-by-default.patch |  4 +-
+ ...rt-for-configuring-management-packet.patch |  4 +-
+ ...ble-out-of-bound-access-of-ath10k_ra.patch |  2 +-
+ ...rect-multicast-broadcast-rate-settin.patch |  4 +-
+ ...-power-reduction-for-US-regulatory-d.patch |  2 +-
+ ...set-but-not-used-variables-sfdoff-an.patch |  8 +-
+ ...reduce-timeout-for-action-frame-scan.patch | 67 ----------------
+ ...l-timeout-waiting-for-action-frame-o.patch | 79 -------------------
+ ...rd_type-used-for-nvram-file-selectio.patch |  2 +-
+ ...frameburst-mode-in-default-firmware-.patch |  2 +-
+ ...mac-set-F2-watermark-to-256-for-4373.patch | 73 -----------------
+ ...-set-SDIO-F1-MesBusyCtrl-for-CYW4373.patch | 55 -------------
+ ...-0001-brcmfmac-Fix-access-point-mode.patch | 41 ----------
+ ...e-bphy_err-in-all-wiphy-related-code.patch |  4 +-
+ ...fix-NULL-pointer-derefence-during-US.patch |  8 +-
+ ...-the-order-of-things-in-brcmf_detach.patch | 27 ++++---
+ ...g80211_ops-pointer-to-another-struct.patch |  2 +-
+ ...rcmf_attach-and-brcmf_detach-functio.patch |  2 +-
+ ...ove-monitor-interface-when-detaching.patch | 30 -------
+ ...ratelimited-variants-of-err-and-warn.patch |  2 +-
+ .../mac80211/patches/subsys/210-ap_scan.patch |  2 +-
+ ...l-Enable-STBC-and-LDPC-for-VHT-Rates.patch |  9 +--
+ ...l-remove-unnecessary-debugfs-cleanup.patch |  2 +-
+ ...l-merge-with-minstrel_ht-always-enab.patch |  8 +-
+ ...trel-reduce-minstrel_mcs_groups-size.patch | 14 ++--
+ ...l-fix-using-short-preamble-CCK-rates.patch | 31 --------
+ ...rel-fix-CCK-rate-group-streams-value.patch | 20 -----
+ ...l-fix-sampling-reporting-of-CCK-rate.patch | 58 --------------
+ ...time-accounting-and-scheduling-to-TX.patch |  4 +-
+ ...ory-leak-in-cfg80211_cqm_rssi_update.patch | 21 -----
+ ...-page-refcount-issue-in-A-MSDU-decap.patch | 25 ------
+ .../522-mac80211_configure_antenna_gain.patch |  4 +-
+ 37 files changed, 74 insertions(+), 570 deletions(-)
+ delete mode 100644 package/kernel/mac80211/patches/brcm/306-v4.20-0001-brcmfmac-reduce-timeout-for-action-frame-scan.patch
+ delete mode 100644 package/kernel/mac80211/patches/brcm/306-v4.20-0002-brcmfmac-fix-full-timeout-waiting-for-action-frame-o.patch
+ delete mode 100644 package/kernel/mac80211/patches/brcm/329-v5.0-0002-brcmfmac-set-F2-watermark-to-256-for-4373.patch
+ delete mode 100644 package/kernel/mac80211/patches/brcm/329-v5.0-0003-brcmfmac-set-SDIO-F1-MesBusyCtrl-for-CYW4373.patch
+ delete mode 100644 package/kernel/mac80211/patches/brcm/332-v5.0-0001-brcmfmac-Fix-access-point-mode.patch
+ delete mode 100644 package/kernel/mac80211/patches/brcm/405-v5.5-brcmfmac-remove-monitor-interface-when-detaching.patch
+ delete mode 100644 package/kernel/mac80211/patches/subsys/307-mac80211-minstrel-fix-using-short-preamble-CCK-rates.patch
+ delete mode 100644 package/kernel/mac80211/patches/subsys/308-mac80211-minstrel-fix-CCK-rate-group-streams-value.patch
+ delete mode 100644 package/kernel/mac80211/patches/subsys/309-mac80211-minstrel-fix-sampling-reporting-of-CCK-rate.patch
+ delete mode 100644 package/kernel/mac80211/patches/subsys/369-cfg80211-fix-memory-leak-in-cfg80211_cqm_rssi_update.patch
+ delete mode 100644 package/kernel/mac80211/patches/subsys/370-cfg80211-fix-page-refcount-issue-in-A-MSDU-decap.patch
+
+diff --git a/package/kernel/mac80211/Makefile b/package/kernel/mac80211/Makefile
+index ed104a53fce..97072aacd5f 100644
+--- a/package/kernel/mac80211/Makefile
++++ b/package/kernel/mac80211/Makefile
+@@ -10,10 +10,10 @@ include $(INCLUDE_DIR)/kernel.mk
+ 
+ PKG_NAME:=mac80211
+ 
+-PKG_VERSION:=4.19.85-1
++PKG_VERSION:=4.19.98-1
+ PKG_RELEASE:=1
+-PKG_SOURCE_URL:=@KERNEL/linux/kernel/projects/backports/stable/v4.19.85/
+-PKG_HASH:=6a92df43e8c3e2410638d84dfd18773d667757532dd0a911227c9b7d65aee34d
++PKG_SOURCE_URL:=@KERNEL/linux/kernel/projects/backports/stable/v4.19.98/
++PKG_HASH:=256d77e9cd3918d6a361e029850aba4568e8a00167ab3ed55495a359511c5bd2
+ 
+ PKG_SOURCE:=backports-$(PKG_VERSION).tar.xz
+ PKG_BUILD_DIR:=$(KERNEL_BUILD_DIR)/backports-$(PKG_VERSION)
+diff --git a/package/kernel/mac80211/patches/ath/930-ath10k_add_tpt_led_trigger.patch b/package/kernel/mac80211/patches/ath/930-ath10k_add_tpt_led_trigger.patch
+index 911086355e0..4bcde171a91 100644
+--- a/package/kernel/mac80211/patches/ath/930-ath10k_add_tpt_led_trigger.patch
++++ b/package/kernel/mac80211/patches/ath/930-ath10k_add_tpt_led_trigger.patch
+@@ -1,6 +1,6 @@
+ --- a/drivers/net/wireless/ath/ath10k/mac.c
+ +++ b/drivers/net/wireless/ath/ath10k/mac.c
+-@@ -8287,6 +8287,21 @@ static int ath10k_mac_init_rd(struct ath
++@@ -8297,6 +8297,21 @@ static int ath10k_mac_init_rd(struct ath
+  	return 0;
+  }
+  
+@@ -22,7 +22,7 @@
+  int ath10k_mac_register(struct ath10k *ar)
+  {
+  	static const u32 cipher_suites[] = {
+-@@ -8577,6 +8592,12 @@ int ath10k_mac_register(struct ath10k *a
++@@ -8581,6 +8596,12 @@ int ath10k_mac_register(struct ath10k *a
+  
+  	wiphy_ext_feature_set(ar->hw->wiphy, NL80211_EXT_FEATURE_CQM_RSSI_LIST);
+  
+diff --git a/package/kernel/mac80211/patches/ath/972-ath10k_fix-crash-due-to-wrong-handling-of-peer_bw_rxnss_override-parameter.patch b/package/kernel/mac80211/patches/ath/972-ath10k_fix-crash-due-to-wrong-handling-of-peer_bw_rxnss_override-parameter.patch
+index d4097a2c846..6ff445c7301 100644
+--- a/package/kernel/mac80211/patches/ath/972-ath10k_fix-crash-due-to-wrong-handling-of-peer_bw_rxnss_override-parameter.patch
++++ b/package/kernel/mac80211/patches/ath/972-ath10k_fix-crash-due-to-wrong-handling-of-peer_bw_rxnss_override-parameter.patch
+@@ -105,7 +105,7 @@ v9: use SM/MS macros from code.h to simplify shift/mask handling
+  }
+ --- a/drivers/net/wireless/ath/ath10k/wmi.c
+ +++ b/drivers/net/wireless/ath/ath10k/wmi.c
+-@@ -7365,12 +7365,7 @@ ath10k_wmi_peer_assoc_fill_10_4(struct a
++@@ -7378,12 +7378,7 @@ ath10k_wmi_peer_assoc_fill_10_4(struct a
+  	struct wmi_10_4_peer_assoc_complete_cmd *cmd = buf;
+  
+  	ath10k_wmi_peer_assoc_fill_10_2(ar, buf, arg);
+diff --git a/package/kernel/mac80211/patches/ath/973-ath10k_fix-band_center_freq-handling-for-VHT160-in-recent-firmwares.patch b/package/kernel/mac80211/patches/ath/973-ath10k_fix-band_center_freq-handling-for-VHT160-in-recent-firmwares.patch
+index a7cf89fec92..4984fc66991 100644
+--- a/package/kernel/mac80211/patches/ath/973-ath10k_fix-band_center_freq-handling-for-VHT160-in-recent-firmwares.patch
++++ b/package/kernel/mac80211/patches/ath/973-ath10k_fix-band_center_freq-handling-for-VHT160-in-recent-firmwares.patch
+@@ -13,7 +13,7 @@ v2: fix trailing whitespace issue and fix some typos within the commit note
+  2 files changed, 8 insertions(+), 10 deletions(-)
+ --- a/drivers/net/wireless/ath/ath10k/mac.c
+ +++ b/drivers/net/wireless/ath/ath10k/mac.c
+-@@ -4478,13 +4478,6 @@ static struct ieee80211_sta_vht_cap ath1
++@@ -4480,13 +4480,6 @@ static struct ieee80211_sta_vht_cap ath1
+  		vht_cap.cap |= val;
+  	}
+  
+diff --git a/package/kernel/mac80211/patches/ath/974-ath10k_add-LED-and-GPIO-controlling-support-for-various-chipsets.patch b/package/kernel/mac80211/patches/ath/974-ath10k_add-LED-and-GPIO-controlling-support-for-various-chipsets.patch
+index 8447118b80a..a13fb036ad5 100644
+--- a/package/kernel/mac80211/patches/ath/974-ath10k_add-LED-and-GPIO-controlling-support-for-various-chipsets.patch
++++ b/package/kernel/mac80211/patches/ath/974-ath10k_add-LED-and-GPIO-controlling-support-for-various-chipsets.patch
+@@ -229,7 +229,7 @@ v13:
+  	bool p2p;
+  
+  	struct {
+-@@ -1099,6 +1099,13 @@ struct ath10k {
++@@ -1100,6 +1100,13 @@ struct ath10k {
+  	} testmode;
+  
+  	struct {
+@@ -475,7 +475,7 @@ v13:
+  static const struct wmi_peer_flags_map wmi_tlv_peer_flags_map = {
+ --- a/drivers/net/wireless/ath/ath10k/wmi.c
+ +++ b/drivers/net/wireless/ath/ath10k/wmi.c
+-@@ -7185,6 +7185,49 @@ ath10k_wmi_op_gen_peer_set_param(struct
++@@ -7198,6 +7198,49 @@ ath10k_wmi_op_gen_peer_set_param(struct
+  	return skb;
+  }
+  
+@@ -525,7 +525,7 @@ v13:
+  static struct sk_buff *
+  ath10k_wmi_op_gen_set_psmode(struct ath10k *ar, u32 vdev_id,
+  			     enum wmi_sta_ps_mode psmode)
+-@@ -8796,6 +8839,9 @@ static const struct wmi_ops wmi_ops = {
++@@ -8809,6 +8852,9 @@ static const struct wmi_ops wmi_ops = {
+  	.fw_stats_fill = ath10k_wmi_main_op_fw_stats_fill,
+  	.get_vdev_subtype = ath10k_wmi_op_get_vdev_subtype,
+  	.gen_echo = ath10k_wmi_op_gen_echo,
+@@ -535,7 +535,7 @@ v13:
+  	/* .gen_bcn_tmpl not implemented */
+  	/* .gen_prb_tmpl not implemented */
+  	/* .gen_p2p_go_bcn_ie not implemented */
+-@@ -8866,6 +8912,8 @@ static const struct wmi_ops wmi_10_1_ops
++@@ -8879,6 +8925,8 @@ static const struct wmi_ops wmi_10_1_ops
+  	.fw_stats_fill = ath10k_wmi_10x_op_fw_stats_fill,
+  	.get_vdev_subtype = ath10k_wmi_op_get_vdev_subtype,
+  	.gen_echo = ath10k_wmi_op_gen_echo,
+@@ -544,7 +544,7 @@ v13:
+  	/* .gen_bcn_tmpl not implemented */
+  	/* .gen_prb_tmpl not implemented */
+  	/* .gen_p2p_go_bcn_ie not implemented */
+-@@ -8937,6 +8985,8 @@ static const struct wmi_ops wmi_10_2_ops
++@@ -8950,6 +8998,8 @@ static const struct wmi_ops wmi_10_2_ops
+  	.gen_delba_send = ath10k_wmi_op_gen_delba_send,
+  	.fw_stats_fill = ath10k_wmi_10x_op_fw_stats_fill,
+  	.get_vdev_subtype = ath10k_wmi_op_get_vdev_subtype,
+@@ -553,7 +553,7 @@ v13:
+  	/* .gen_pdev_enable_adaptive_cca not implemented */
+  };
+  
+-@@ -9007,6 +9057,8 @@ static const struct wmi_ops wmi_10_2_4_o
++@@ -9020,6 +9070,8 @@ static const struct wmi_ops wmi_10_2_4_o
+  	.gen_pdev_enable_adaptive_cca =
+  		ath10k_wmi_op_gen_pdev_enable_adaptive_cca,
+  	.get_vdev_subtype = ath10k_wmi_10_2_4_op_get_vdev_subtype,
+@@ -562,7 +562,7 @@ v13:
+  	/* .gen_bcn_tmpl not implemented */
+  	/* .gen_prb_tmpl not implemented */
+  	/* .gen_p2p_go_bcn_ie not implemented */
+-@@ -9086,6 +9138,8 @@ static const struct wmi_ops wmi_10_4_ops
++@@ -9099,6 +9151,8 @@ static const struct wmi_ops wmi_10_4_ops
+  	.gen_pdev_bss_chan_info_req = ath10k_wmi_10_2_op_gen_pdev_bss_chan_info,
+  	.gen_echo = ath10k_wmi_op_gen_echo,
+  	.gen_pdev_get_tpc_config = ath10k_wmi_10_2_4_op_gen_pdev_get_tpc_config,
+diff --git a/package/kernel/mac80211/patches/ath/975-ath10k-use-tpt-trigger-by-default.patch b/package/kernel/mac80211/patches/ath/975-ath10k-use-tpt-trigger-by-default.patch
+index a75bf93c7bc..e60a213a307 100644
+--- a/package/kernel/mac80211/patches/ath/975-ath10k-use-tpt-trigger-by-default.patch
++++ b/package/kernel/mac80211/patches/ath/975-ath10k-use-tpt-trigger-by-default.patch
+@@ -16,7 +16,7 @@ Signed-off-by: Mathias Kresin <dev@kresin.me>
+ 
+ --- a/drivers/net/wireless/ath/ath10k/core.h
+ +++ b/drivers/net/wireless/ath/ath10k/core.h
+-@@ -1144,6 +1144,10 @@ struct ath10k {
++@@ -1145,6 +1145,10 @@ struct ath10k {
+  	struct ath10k_radar_found_info last_radar_info;
+  	struct work_struct radar_confirmation_work;
+  
+@@ -42,7 +42,7 @@ Signed-off-by: Mathias Kresin <dev@kresin.me>
+  	if (ret)
+ --- a/drivers/net/wireless/ath/ath10k/mac.c
+ +++ b/drivers/net/wireless/ath/ath10k/mac.c
+-@@ -8609,7 +8609,7 @@ int ath10k_mac_register(struct ath10k *a
++@@ -8613,7 +8613,7 @@ int ath10k_mac_register(struct ath10k *a
+  	wiphy_ext_feature_set(ar->hw->wiphy, NL80211_EXT_FEATURE_CQM_RSSI_LIST);
+  
+  #ifdef CPTCFG_MAC80211_LEDS
+diff --git a/package/kernel/mac80211/patches/ath/977-ath10k-add-support-for-configuring-management-packet.patch b/package/kernel/mac80211/patches/ath/977-ath10k-add-support-for-configuring-management-packet.patch
+index 26ec9b7e281..a750e232df0 100644
+--- a/package/kernel/mac80211/patches/ath/977-ath10k-add-support-for-configuring-management-packet.patch
++++ b/package/kernel/mac80211/patches/ath/977-ath10k-add-support-for-configuring-management-packet.patch
+@@ -43,7 +43,7 @@ Origin: backport, https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux
+  static int ath10k_mac_get_max_vht_mcs_map(u16 mcs_map, int nss)
+  {
+  	switch ((mcs_map >> (2 * nss)) & 0x3) {
+-@@ -5472,9 +5488,10 @@ static void ath10k_bss_info_changed(stru
++@@ -5482,9 +5498,10 @@ static void ath10k_bss_info_changed(stru
+  	struct cfg80211_chan_def def;
+  	u32 vdev_param, pdev_param, slottime, preamble;
+  	u16 bitrate, hw_value;
+@@ -56,7 +56,7 @@ Origin: backport, https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux
+  
+  	mutex_lock(&ar->conf_mutex);
+  
+-@@ -5680,6 +5697,30 @@ static void ath10k_bss_info_changed(stru
++@@ -5690,6 +5707,30 @@ static void ath10k_bss_info_changed(stru
+  				    arvif->vdev_id,  ret);
+  	}
+  
+diff --git a/package/kernel/mac80211/patches/ath/978-ath10k-fix-possible-out-of-bound-access-of-ath10k_ra.patch b/package/kernel/mac80211/patches/ath/978-ath10k-fix-possible-out-of-bound-access-of-ath10k_ra.patch
+index 1f8a3830cba..218301ca3a4 100644
+--- a/package/kernel/mac80211/patches/ath/978-ath10k-fix-possible-out-of-bound-access-of-ath10k_ra.patch
++++ b/package/kernel/mac80211/patches/ath/978-ath10k-fix-possible-out-of-bound-access-of-ath10k_ra.patch
+@@ -26,7 +26,7 @@ Origin: backport, https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux
+  		if (ath10k_rates[i].bitrate == bitrate)
+  			return hw_value_prefix | ath10k_rates[i].hw_value;
+  	}
+-@@ -5703,22 +5703,22 @@ static void ath10k_bss_info_changed(stru
++@@ -5713,22 +5713,22 @@ static void ath10k_bss_info_changed(stru
+  			return;
+  		}
+  
+diff --git a/package/kernel/mac80211/patches/ath/979-ath10k-fix-incorrect-multicast-broadcast-rate-settin.patch b/package/kernel/mac80211/patches/ath/979-ath10k-fix-incorrect-multicast-broadcast-rate-settin.patch
+index f6fa5b7c1fa..58422304b63 100644
+--- a/package/kernel/mac80211/patches/ath/979-ath10k-fix-incorrect-multicast-broadcast-rate-settin.patch
++++ b/package/kernel/mac80211/patches/ath/979-ath10k-fix-incorrect-multicast-broadcast-rate-settin.patch
+@@ -17,7 +17,7 @@ Origin: other, https://patchwork.kernel.org/patch/10723033/
+ 
+ --- a/drivers/net/wireless/ath/ath10k/mac.c
+ +++ b/drivers/net/wireless/ath/ath10k/mac.c
+-@@ -5488,8 +5488,8 @@ static void ath10k_bss_info_changed(stru
++@@ -5498,8 +5498,8 @@ static void ath10k_bss_info_changed(stru
+  	struct cfg80211_chan_def def;
+  	u32 vdev_param, pdev_param, slottime, preamble;
+  	u16 bitrate, hw_value;
+@@ -28,7 +28,7 @@ Origin: other, https://patchwork.kernel.org/patch/10723033/
+  	enum nl80211_band band;
+  	const struct ieee80211_supported_band *sband;
+  
+-@@ -5662,7 +5662,11 @@ static void ath10k_bss_info_changed(stru
++@@ -5672,7 +5672,11 @@ static void ath10k_bss_info_changed(stru
+  	if (changed & BSS_CHANGED_MCAST_RATE &&
+  	    !ath10k_mac_vif_chan(arvif->vif, &def)) {
+  		band = def.chan->band;
+diff --git a/package/kernel/mac80211/patches/ath/981-ath10k-adjust-tx-power-reduction-for-US-regulatory-d.patch b/package/kernel/mac80211/patches/ath/981-ath10k-adjust-tx-power-reduction-for-US-regulatory-d.patch
+index 06e0b410519..32b2d681d51 100644
+--- a/package/kernel/mac80211/patches/ath/981-ath10k-adjust-tx-power-reduction-for-US-regulatory-d.patch
++++ b/package/kernel/mac80211/patches/ath/981-ath10k-adjust-tx-power-reduction-for-US-regulatory-d.patch
+@@ -29,7 +29,7 @@ Forwarded: no
+ --- a/drivers/net/wireless/ath/ath10k/mac.c
+ +++ b/drivers/net/wireless/ath/ath10k/mac.c
+ @@ -988,6 +988,40 @@ static inline int ath10k_vdev_setup_sync
+- 	return 0;
++ 	return ar->last_wmi_vdev_start_status;
+  }
+  
+ +static u32 ath10k_get_max_antenna_gain(struct ath10k *ar,
+diff --git a/package/kernel/mac80211/patches/brcm/305-v4.20-0001-brcmfmac-remove-set-but-not-used-variables-sfdoff-an.patch b/package/kernel/mac80211/patches/brcm/305-v4.20-0001-brcmfmac-remove-set-but-not-used-variables-sfdoff-an.patch
+index c4b67863a08..659cdabd849 100644
+--- a/package/kernel/mac80211/patches/brcm/305-v4.20-0001-brcmfmac-remove-set-but-not-used-variables-sfdoff-an.patch
++++ b/package/kernel/mac80211/patches/brcm/305-v4.20-0001-brcmfmac-remove-set-but-not-used-variables-sfdoff-an.patch
+@@ -22,7 +22,7 @@ Signed-off-by: Kalle Valo <kvalo@codeaurora.org>
+ 
+ --- a/drivers/net/wireless/broadcom/brcm80211/brcmfmac/sdio.c
+ +++ b/drivers/net/wireless/broadcom/brcm80211/brcmfmac/sdio.c
+-@@ -1474,7 +1474,7 @@ static u8 brcmf_sdio_rxglom(struct brcmf
++@@ -1480,7 +1480,7 @@ static u8 brcmf_sdio_rxglom(struct brcmf
+  	struct sk_buff *pfirst, *pnext;
+  
+  	int errcode;
+@@ -31,7 +31,7 @@ Signed-off-by: Kalle Valo <kvalo@codeaurora.org>
+  
+  	struct brcmf_sdio_hdrinfo rd_new;
+  
+-@@ -1608,7 +1608,6 @@ static u8 brcmf_sdio_rxglom(struct brcmf
++@@ -1614,7 +1614,6 @@ static u8 brcmf_sdio_rxglom(struct brcmf
+  
+  		/* Remove superframe header, remember offset */
+  		skb_pull(pfirst, rd_new.dat_offset);
+@@ -39,7 +39,7 @@ Signed-off-by: Kalle Valo <kvalo@codeaurora.org>
+  		num = 0;
+  
+  		/* Validate all the subframe headers */
+-@@ -3416,7 +3415,6 @@ static int brcmf_sdio_bus_preinit(struct
++@@ -3422,7 +3421,6 @@ static int brcmf_sdio_bus_preinit(struct
+  	struct brcmf_sdio_dev *sdiodev = bus_if->bus_priv.sdio;
+  	struct brcmf_sdio *bus = sdiodev->bus;
+  	struct brcmf_core *core = bus->sdio_core;
+@@ -47,7 +47,7 @@ Signed-off-by: Kalle Valo <kvalo@codeaurora.org>
+  	u32 value;
+  	int err;
+  
+-@@ -3459,7 +3457,6 @@ static int brcmf_sdio_bus_preinit(struct
++@@ -3465,7 +3463,6 @@ static int brcmf_sdio_bus_preinit(struct
+  	if (sdiodev->sg_support) {
+  		bus->txglom = false;
+  		value = 1;
+diff --git a/package/kernel/mac80211/patches/brcm/306-v4.20-0001-brcmfmac-reduce-timeout-for-action-frame-scan.patch b/package/kernel/mac80211/patches/brcm/306-v4.20-0001-brcmfmac-reduce-timeout-for-action-frame-scan.patch
+deleted file mode 100644
+index a71c1aee03f..00000000000
+--- a/package/kernel/mac80211/patches/brcm/306-v4.20-0001-brcmfmac-reduce-timeout-for-action-frame-scan.patch
++++ /dev/null
+@@ -1,67 +0,0 @@
+-From edb6d6885bef82d1eac432dbeca9fbf4ec349d7e Mon Sep 17 00:00:00 2001
+-From: Chung-Hsien Hsu <stanley.hsu@cypress.com>
+-Date: Thu, 27 Sep 2018 14:59:44 +0000
+-Subject: [PATCH] brcmfmac: reduce timeout for action frame scan
+-
+-Finding a common channel to send an action frame out is required for
+-some action types. Since a loop with several scan retry is used to find
+-the channel, a short wait time could be considered for each attempt.
+-This patch reduces the wait time from 1500 to 450 msec for each action
+-frame scan.
+-
+-This patch fixes the WFA p2p certification 5.1.20 failure caused by the
+-long action frame send time.
+-
+-Signed-off-by: Chung-Hsien Hsu <stanley.hsu@cypress.com>
+-Signed-off-by: Chi-Hsien Lin <chi-hsien.lin@cypress.com>
+-Signed-off-by: Kalle Valo <kvalo@codeaurora.org>
+----
+- drivers/net/wireless/broadcom/brcm80211/brcmfmac/p2p.c | 9 ++++-----
+- 1 file changed, 4 insertions(+), 5 deletions(-)
+-
+---- a/drivers/net/wireless/broadcom/brcm80211/brcmfmac/p2p.c
+-+++ b/drivers/net/wireless/broadcom/brcm80211/brcmfmac/p2p.c
+-@@ -74,7 +74,7 @@
+- #define P2P_AF_MAX_WAIT_TIME		msecs_to_jiffies(2000)
+- #define P2P_INVALID_CHANNEL		-1
+- #define P2P_CHANNEL_SYNC_RETRY		5
+--#define P2P_AF_FRM_SCAN_MAX_WAIT	msecs_to_jiffies(1500)
+-+#define P2P_AF_FRM_SCAN_MAX_WAIT	msecs_to_jiffies(450)
+- #define P2P_DEFAULT_SLEEP_TIME_VSDB	200
+- 
+- /* WiFi P2P Public Action Frame OUI Subtypes */
+-@@ -1134,7 +1134,6 @@ static s32 brcmf_p2p_af_searching_channe
+- {
+- 	struct afx_hdl *afx_hdl = &p2p->afx_hdl;
+- 	struct brcmf_cfg80211_vif *pri_vif;
+--	unsigned long duration;
+- 	s32 retry;
+- 
+- 	brcmf_dbg(TRACE, "Enter\n");
+-@@ -1150,7 +1149,6 @@ static s32 brcmf_p2p_af_searching_channe
+- 	 * pending action frame tx is cancelled.
+- 	 */
+- 	retry = 0;
+--	duration = msecs_to_jiffies(P2P_AF_FRM_SCAN_MAX_WAIT);
+- 	while ((retry < P2P_CHANNEL_SYNC_RETRY) &&
+- 	       (afx_hdl->peer_chan == P2P_INVALID_CHANNEL)) {
+- 		afx_hdl->is_listen = false;
+-@@ -1158,7 +1156,8 @@ static s32 brcmf_p2p_af_searching_channe
+- 			  retry);
+- 		/* search peer on peer's listen channel */
+- 		schedule_work(&afx_hdl->afx_work);
+--		wait_for_completion_timeout(&afx_hdl->act_frm_scan, duration);
+-+		wait_for_completion_timeout(&afx_hdl->act_frm_scan,
+-+					    P2P_AF_FRM_SCAN_MAX_WAIT);
+- 		if ((afx_hdl->peer_chan != P2P_INVALID_CHANNEL) ||
+- 		    (!test_bit(BRCMF_P2P_STATUS_FINDING_COMMON_CHANNEL,
+- 			       &p2p->status)))
+-@@ -1171,7 +1170,7 @@ static s32 brcmf_p2p_af_searching_channe
+- 			afx_hdl->is_listen = true;
+- 			schedule_work(&afx_hdl->afx_work);
+- 			wait_for_completion_timeout(&afx_hdl->act_frm_scan,
+--						    duration);
+-+						    P2P_AF_FRM_SCAN_MAX_WAIT);
+- 		}
+- 		if ((afx_hdl->peer_chan != P2P_INVALID_CHANNEL) ||
+- 		    (!test_bit(BRCMF_P2P_STATUS_FINDING_COMMON_CHANNEL,
+diff --git a/package/kernel/mac80211/patches/brcm/306-v4.20-0002-brcmfmac-fix-full-timeout-waiting-for-action-frame-o.patch b/package/kernel/mac80211/patches/brcm/306-v4.20-0002-brcmfmac-fix-full-timeout-waiting-for-action-frame-o.patch
+deleted file mode 100644
+index ef2d0934fcc..00000000000
+--- a/package/kernel/mac80211/patches/brcm/306-v4.20-0002-brcmfmac-fix-full-timeout-waiting-for-action-frame-o.patch
++++ /dev/null
+@@ -1,79 +0,0 @@
+-From fbf07000960d9c8a13fdc17c6de0230d681c7543 Mon Sep 17 00:00:00 2001
+-From: Chung-Hsien Hsu <stanley.hsu@cypress.com>
+-Date: Thu, 27 Sep 2018 14:59:49 +0000
+-Subject: [PATCH] brcmfmac: fix full timeout waiting for action frame
+- on-channel tx
+-
+-The driver sends an action frame down and waits for a completion signal
+-triggered by the received BRCMF_E_ACTION_FRAME_OFF_CHAN_COMPLETE event
+-to continue the process. However, the action frame could be transmitted
+-either on the current channel or on an off channel. For the on-channel
+-case, only BRCMF_E_ACTION_FRAME_COMPLETE event will be received when
+-the frame is transmitted, which make the driver always wait a full
+-timeout duration. This patch has the completion signal be triggered by
+-receiving the BRCMF_E_ACTION_FRAME_COMPLETE event for the on-channel
+-case.
+-
+-This change fixes WFA p2p certification 5.1.19 failure.
+-
+-Signed-off-by: Chung-Hsien Hsu <stanley.hsu@cypress.com>
+-Signed-off-by: Chi-Hsien Lin <chi-hsien.lin@cypress.com>
+-Signed-off-by: Kalle Valo <kvalo@codeaurora.org>
+----
+- drivers/net/wireless/broadcom/brcm80211/brcmfmac/p2p.c | 17 +++++++++++++++--
+- drivers/net/wireless/broadcom/brcm80211/brcmfmac/p2p.h |  2 ++
+- 2 files changed, 17 insertions(+), 2 deletions(-)
+-
+---- a/drivers/net/wireless/broadcom/brcm80211/brcmfmac/p2p.c
+-+++ b/drivers/net/wireless/broadcom/brcm80211/brcmfmac/p2p.c
+-@@ -1457,10 +1457,12 @@ int brcmf_p2p_notify_action_tx_complete(
+- 		return 0;
+- 
+- 	if (e->event_code == BRCMF_E_ACTION_FRAME_COMPLETE) {
+--		if (e->status == BRCMF_E_STATUS_SUCCESS)
+-+		if (e->status == BRCMF_E_STATUS_SUCCESS) {
+- 			set_bit(BRCMF_P2P_STATUS_ACTION_TX_COMPLETED,
+- 				&p2p->status);
+--		else {
+-+			if (!p2p->wait_for_offchan_complete)
+-+				complete(&p2p->send_af_done);
+-+		} else {
+- 			set_bit(BRCMF_P2P_STATUS_ACTION_TX_NOACK, &p2p->status);
+- 			/* If there is no ack, we don't need to wait for
+- 			 * WLC_E_ACTION_FRAME_OFFCHAN_COMPLETE event
+-@@ -1511,6 +1513,17 @@ static s32 brcmf_p2p_tx_action_frame(str
+- 	p2p->af_sent_channel = le32_to_cpu(af_params->channel);
+- 	p2p->af_tx_sent_jiffies = jiffies;
+- 
+-+	if (test_bit(BRCMF_P2P_STATUS_DISCOVER_LISTEN, &p2p->status) &&
+-+	    p2p->af_sent_channel ==
+-+	    ieee80211_frequency_to_channel(p2p->remain_on_channel.center_freq))
+-+		p2p->wait_for_offchan_complete = false;
+-+	else
+-+		p2p->wait_for_offchan_complete = true;
+-+
+-+	brcmf_dbg(TRACE, "Waiting for %s tx completion event\n",
+-+		  (p2p->wait_for_offchan_complete) ?
+-+		   "off-channel" : "on-channel");
+-+
+- 	timeout = wait_for_completion_timeout(&p2p->send_af_done,
+- 					      P2P_AF_MAX_WAIT_TIME);
+- 
+---- a/drivers/net/wireless/broadcom/brcm80211/brcmfmac/p2p.h
+-+++ b/drivers/net/wireless/broadcom/brcm80211/brcmfmac/p2p.h
+-@@ -124,6 +124,7 @@ struct afx_hdl {
+-  * @gon_req_action: about to send go negotiation requets frame.
+-  * @block_gon_req_tx: drop tx go negotiation requets frame.
+-  * @p2pdev_dynamically: is p2p device if created by module param or supplicant.
+-+ * @wait_for_offchan_complete: wait for off-channel tx completion event.
+-  */
+- struct brcmf_p2p_info {
+- 	struct brcmf_cfg80211_info *cfg;
+-@@ -144,6 +145,7 @@ struct brcmf_p2p_info {
+- 	bool gon_req_action;
+- 	bool block_gon_req_tx;
+- 	bool p2pdev_dynamically;
+-+	bool wait_for_offchan_complete;
+- };
+- 
+- s32 brcmf_p2p_attach(struct brcmf_cfg80211_info *cfg, bool p2pdev_forced);
+diff --git a/package/kernel/mac80211/patches/brcm/320-v5.0-0004-brcmfmac-Set-board_type-used-for-nvram-file-selectio.patch b/package/kernel/mac80211/patches/brcm/320-v5.0-0004-brcmfmac-Set-board_type-used-for-nvram-file-selectio.patch
+index f7c2c0ff487..fe930508b61 100644
+--- a/package/kernel/mac80211/patches/brcm/320-v5.0-0004-brcmfmac-Set-board_type-used-for-nvram-file-selectio.patch
++++ b/package/kernel/mac80211/patches/brcm/320-v5.0-0004-brcmfmac-Set-board_type-used-for-nvram-file-selectio.patch
+@@ -67,7 +67,7 @@ Signed-off-by: Kalle Valo <kvalo@codeaurora.org>
+  	fwreq->bus_nr = devinfo->pdev->bus->number;
+ --- a/drivers/net/wireless/broadcom/brcm80211/brcmfmac/sdio.c
+ +++ b/drivers/net/wireless/broadcom/brcm80211/brcmfmac/sdio.c
+-@@ -4185,6 +4185,7 @@ brcmf_sdio_prepare_fw_request(struct brc
++@@ -4210,6 +4210,7 @@ brcmf_sdio_prepare_fw_request(struct brc
+  
+  	fwreq->items[BRCMF_SDIO_FW_CODE].type = BRCMF_FW_TYPE_BINARY;
+  	fwreq->items[BRCMF_SDIO_FW_NVRAM].type = BRCMF_FW_TYPE_NVRAM;
+diff --git a/package/kernel/mac80211/patches/brcm/328-v5.0-0002-brcmfmac-enable-frameburst-mode-in-default-firmware-.patch b/package/kernel/mac80211/patches/brcm/328-v5.0-0002-brcmfmac-enable-frameburst-mode-in-default-firmware-.patch
+index 3ae36890cea..3464839a2b6 100644
+--- a/package/kernel/mac80211/patches/brcm/328-v5.0-0002-brcmfmac-enable-frameburst-mode-in-default-firmware-.patch
++++ b/package/kernel/mac80211/patches/brcm/328-v5.0-0002-brcmfmac-enable-frameburst-mode-in-default-firmware-.patch
+@@ -17,7 +17,7 @@ Signed-off-by: Kalle Valo <kvalo@codeaurora.org>
+ 
+ --- a/drivers/net/wireless/broadcom/brcm80211/brcmfmac/cfg80211.c
+ +++ b/drivers/net/wireless/broadcom/brcm80211/brcmfmac/cfg80211.c
+-@@ -6644,6 +6644,12 @@ static s32 brcmf_config_dongle(struct br
++@@ -6654,6 +6654,12 @@ static s32 brcmf_config_dongle(struct br
+  
+  	brcmf_configure_arp_nd_offload(ifp, true);
+  
+diff --git a/package/kernel/mac80211/patches/brcm/329-v5.0-0002-brcmfmac-set-F2-watermark-to-256-for-4373.patch b/package/kernel/mac80211/patches/brcm/329-v5.0-0002-brcmfmac-set-F2-watermark-to-256-for-4373.patch
+deleted file mode 100644
+index bf35c4587ef..00000000000
+--- a/package/kernel/mac80211/patches/brcm/329-v5.0-0002-brcmfmac-set-F2-watermark-to-256-for-4373.patch
++++ /dev/null
+@@ -1,73 +0,0 @@
+-From e1a08730eeb0bad4d82c3bc40e74854872de618d Mon Sep 17 00:00:00 2001
+-From: Wright Feng <wright.feng@cypress.com>
+-Date: Wed, 21 Nov 2018 07:53:44 +0000
+-Subject: [PATCH] brcmfmac: set F2 watermark to 256 for 4373
+-
+-We got SDIO_CRC_ERROR with 4373 on SDR104 when doing bi-directional
+-throughput test. Enable watermark to 256 to guarantee the operation
+-stability.
+-
+-Reviewed-by: Arend van Spriel <arend.vanspriel@broadcom.com>
+-Signed-off-by: Wright Feng <wright.feng@cypress.com>
+-Signed-off-by: Chi-Hsien Lin <chi-hsien.lin@cypress.com>
+-Signed-off-by: Kalle Valo <kvalo@codeaurora.org>
+----
+- .../broadcom/brcm80211/brcmfmac/sdio.c        | 26 +++++++++++++++++--
+- 1 file changed, 24 insertions(+), 2 deletions(-)
+-
+---- a/drivers/net/wireless/broadcom/brcm80211/brcmfmac/sdio.c
+-+++ b/drivers/net/wireless/broadcom/brcm80211/brcmfmac/sdio.c
+-@@ -49,6 +49,10 @@
+- #define DCMD_RESP_TIMEOUT	msecs_to_jiffies(2500)
+- #define CTL_DONE_TIMEOUT	msecs_to_jiffies(2500)
+- 
+-+/* watermark expressed in number of words */
+-+#define DEFAULT_F2_WATERMARK    0x8
+-+#define CY_4373_F2_WATERMARK    0x40
+-+
+- #ifdef DEBUG
+- 
+- #define BRCMF_TRAP_INFO_SIZE	80
+-@@ -138,6 +142,8 @@ struct rte_console {
+- /* 1: isolate internal sdio signals, put external pads in tri-state; requires
+-  * sdio bus power cycle to clear (rev 9) */
+- #define SBSDIO_DEVCTL_PADS_ISO		0x08
+-+/* 1: enable F2 Watermark */
+-+#define SBSDIO_DEVCTL_F2WM_ENAB		0x10
+- /* Force SD->SB reset mapping (rev 11) */
+- #define SBSDIO_DEVCTL_SB_RST_CTL	0x30
+- /*   Determined by CoreControl bit */
+-@@ -4057,6 +4063,7 @@ static void brcmf_sdio_firmware_callback
+- 	void *nvram;
+- 	u32 nvram_len;
+- 	u8 saveclk;
+-+	u8 devctl;
+- 
+- 	brcmf_dbg(TRACE, "Enter: dev=%s, err=%d\n", dev_name(dev), err);
+- 
+-@@ -4112,8 +4119,23 @@ static void brcmf_sdio_firmware_callback
+- 		brcmf_sdiod_writel(sdiod, core->base + SD_REG(hostintmask),
+- 				   bus->hostintmask, NULL);
+- 
+--
+--		brcmf_sdiod_writeb(sdiod, SBSDIO_WATERMARK, 8, &err);
+-+		switch (sdiod->func1->device) {
+-+		case SDIO_DEVICE_ID_CYPRESS_4373:
+-+			brcmf_dbg(INFO, "set F2 watermark to 0x%x*4 bytes\n",
+-+				  CY_4373_F2_WATERMARK);
+-+			brcmf_sdiod_writeb(sdiod, SBSDIO_WATERMARK,
+-+					   CY_4373_F2_WATERMARK, &err);
+-+			devctl = brcmf_sdiod_readb(sdiod, SBSDIO_DEVICE_CTL,
+-+						   &err);
+-+			devctl |= SBSDIO_DEVCTL_F2WM_ENAB;
+-+			brcmf_sdiod_writeb(sdiod, SBSDIO_DEVICE_CTL, devctl,
+-+					   &err);
+-+			break;
+-+		default:
+-+			brcmf_sdiod_writeb(sdiod, SBSDIO_WATERMARK,
+-+					   DEFAULT_F2_WATERMARK, &err);
+-+			break;
+-+		}
+- 	} else {
+- 		/* Disable F2 again */
+- 		sdio_disable_func(sdiod->func2);
+diff --git a/package/kernel/mac80211/patches/brcm/329-v5.0-0003-brcmfmac-set-SDIO-F1-MesBusyCtrl-for-CYW4373.patch b/package/kernel/mac80211/patches/brcm/329-v5.0-0003-brcmfmac-set-SDIO-F1-MesBusyCtrl-for-CYW4373.patch
+deleted file mode 100644
+index 9ba6931f8dd..00000000000
+--- a/package/kernel/mac80211/patches/brcm/329-v5.0-0003-brcmfmac-set-SDIO-F1-MesBusyCtrl-for-CYW4373.patch
++++ /dev/null
+@@ -1,55 +0,0 @@
+-From 58e4bbea0c1d9b5ace11df968c5dc096ce052a73 Mon Sep 17 00:00:00 2001
+-From: Madhan Mohan R <MadhanMohan.R@cypress.com>
+-Date: Wed, 21 Nov 2018 07:53:45 +0000
+-Subject: [PATCH] brcmfmac: set SDIO F1 MesBusyCtrl for CYW4373
+-
+-Along with F2 watermark (existing) configuration, F1 MesBusyCtrl
+-should be enabled & sdio device RX FIFO watermark should be
+-configured to avoid overflow errors.
+-
+-Reviewed-by: Arend van Spriel <arend.vanspriel@broadcom.com>
+-Signed-off-by: Madhan Mohan R <madhanmohan.r@cypress.com>
+-Signed-off-by: Chi-Hsien Lin <chi-hsien.lin@cypress.com>
+-Signed-off-by: Kalle Valo <kvalo@codeaurora.org>
+----
+- drivers/net/wireless/broadcom/brcm80211/brcmfmac/sdio.c | 3 +++
+- drivers/net/wireless/broadcom/brcm80211/brcmfmac/sdio.h | 9 ++++++++-
+- 2 files changed, 11 insertions(+), 1 deletion(-)
+-
+---- a/drivers/net/wireless/broadcom/brcm80211/brcmfmac/sdio.c
+-+++ b/drivers/net/wireless/broadcom/brcm80211/brcmfmac/sdio.c
+-@@ -4130,6 +4130,9 @@ static void brcmf_sdio_firmware_callback
+- 			devctl |= SBSDIO_DEVCTL_F2WM_ENAB;
+- 			brcmf_sdiod_writeb(sdiod, SBSDIO_DEVICE_CTL, devctl,
+- 					   &err);
+-+			brcmf_sdiod_writeb(sdiod, SBSDIO_FUNC1_MESBUSYCTRL,
+-+					   CY_4373_F2_WATERMARK |
+-+					   SBSDIO_MESBUSYCTRL_ENAB, &err);
+- 			break;
+- 		default:
+- 			brcmf_sdiod_writeb(sdiod, SBSDIO_WATERMARK,
+---- a/drivers/net/wireless/broadcom/brcm80211/brcmfmac/sdio.h
+-+++ b/drivers/net/wireless/broadcom/brcm80211/brcmfmac/sdio.h
+-@@ -77,7 +77,7 @@
+- #define SBSDIO_GPIO_OUT			0x10006
+- /* gpio enable */
+- #define SBSDIO_GPIO_EN			0x10007
+--/* rev < 7, watermark for sdio device */
+-+/* rev < 7, watermark for sdio device TX path */
+- #define SBSDIO_WATERMARK		0x10008
+- /* control busy signal generation */
+- #define SBSDIO_DEVICE_CTL		0x10009
+-@@ -104,6 +104,13 @@
+- #define SBSDIO_FUNC1_RFRAMEBCHI		0x1001C
+- /* MesBusyCtl (rev 11) */
+- #define SBSDIO_FUNC1_MESBUSYCTRL	0x1001D
+-+/* Watermark for sdio device RX path */
+-+#define SBSDIO_MESBUSY_RXFIFO_WM_MASK	0x7F
+-+#define SBSDIO_MESBUSY_RXFIFO_WM_SHIFT	0
+-+/* Enable busy capability for MES access */
+-+#define SBSDIO_MESBUSYCTRL_ENAB		0x80
+-+#define SBSDIO_MESBUSYCTRL_ENAB_SHIFT	7
+-+
+- /* Sdio Core Rev 12 */
+- #define SBSDIO_FUNC1_WAKEUPCTRL		0x1001E
+- #define SBSDIO_FUNC1_WCTRL_ALPWAIT_MASK		0x1
+diff --git a/package/kernel/mac80211/patches/brcm/332-v5.0-0001-brcmfmac-Fix-access-point-mode.patch b/package/kernel/mac80211/patches/brcm/332-v5.0-0001-brcmfmac-Fix-access-point-mode.patch
+deleted file mode 100644
+index f5f45c8d3ef..00000000000
+--- a/package/kernel/mac80211/patches/brcm/332-v5.0-0001-brcmfmac-Fix-access-point-mode.patch
++++ /dev/null
+@@ -1,41 +0,0 @@
+-From 861cb5eb467f5e38dce1aabe4e8db379255bd89b Mon Sep 17 00:00:00 2001
+-From: Stefan Wahren <stefan.wahren@i2se.com>
+-Date: Wed, 12 Dec 2018 20:20:06 +0100
+-Subject: [PATCH] brcmfmac: Fix access point mode
+-
+-Since commit 1204aa17f3b4 ("brcmfmac: set WIPHY_FLAG_HAVE_AP_SME flag")
+-the Raspberry Pi 3 A+ (BCM43455) isn't able to operate in AP mode with
+-hostapd (device_ap_sme=1 use_monitor=0):
+-
+-brcmfmac: brcmf_cfg80211_stop_ap: setting AP mode failed -52
+-
+-So add the missing mgmt_stypes for AP mode to fix this.
+-
+-Fixes: 1204aa17f3b4 ("brcmfmac: set WIPHY_FLAG_HAVE_AP_SME flag")
+-Suggested-by: Arend van Spriel <arend.vanspriel@broadcom.com>
+-Signed-off-by: Stefan Wahren <stefan.wahren@i2se.com>
+-Acked-by: Arend van Spriel <arend.vanspriel@broadcom.com>
+-Signed-off-by: Kalle Valo <kvalo@codeaurora.org>
+----
+- .../wireless/broadcom/brcm80211/brcmfmac/cfg80211.c    | 10 ++++++++++
+- 1 file changed, 10 insertions(+)
+-
+---- a/drivers/net/wireless/broadcom/brcm80211/brcmfmac/cfg80211.c
+-+++ b/drivers/net/wireless/broadcom/brcm80211/brcmfmac/cfg80211.c
+-@@ -6314,6 +6314,16 @@ brcmf_txrx_stypes[NUM_NL80211_IFTYPES] =
+- 		.tx = 0xffff,
+- 		.rx = BIT(IEEE80211_STYPE_ACTION >> 4) |
+- 		      BIT(IEEE80211_STYPE_PROBE_REQ >> 4)
+-+	},
+-+	[NL80211_IFTYPE_AP] = {
+-+		.tx = 0xffff,
+-+		.rx = BIT(IEEE80211_STYPE_ASSOC_REQ >> 4) |
+-+		      BIT(IEEE80211_STYPE_REASSOC_REQ >> 4) |
+-+		      BIT(IEEE80211_STYPE_PROBE_REQ >> 4) |
+-+		      BIT(IEEE80211_STYPE_DISASSOC >> 4) |
+-+		      BIT(IEEE80211_STYPE_AUTH >> 4) |
+-+		      BIT(IEEE80211_STYPE_DEAUTH >> 4) |
+-+		      BIT(IEEE80211_STYPE_ACTION >> 4)
+- 	}
+- };
+- 
+diff --git a/package/kernel/mac80211/patches/brcm/354-v5.1-brcmfmac-use-bphy_err-in-all-wiphy-related-code.patch b/package/kernel/mac80211/patches/brcm/354-v5.1-brcmfmac-use-bphy_err-in-all-wiphy-related-code.patch
+index 5eaf5118686..3d1bcd3d6cc 100644
+--- a/package/kernel/mac80211/patches/brcm/354-v5.1-brcmfmac-use-bphy_err-in-all-wiphy-related-code.patch
++++ b/package/kernel/mac80211/patches/brcm/354-v5.1-brcmfmac-use-bphy_err-in-all-wiphy-related-code.patch
+@@ -503,7 +503,7 @@ Signed-off-by: Kalle Valo <kvalo@codeaurora.org>
+  		goto fail;
+  	}
+  
+-@@ -1353,6 +1356,7 @@ static int brcmf_get_pend_8021x_cnt(stru
++@@ -1358,6 +1361,7 @@ static int brcmf_get_pend_8021x_cnt(stru
+  
+  int brcmf_netdev_wait_pend8021x(struct brcmf_if *ifp)
+  {
+@@ -511,7 +511,7 @@ Signed-off-by: Kalle Valo <kvalo@codeaurora.org>
+  	int err;
+  
+  	err = wait_event_timeout(ifp->pend_8021x_wait,
+-@@ -1360,7 +1364,7 @@ int brcmf_netdev_wait_pend8021x(struct b
++@@ -1365,7 +1369,7 @@ int brcmf_netdev_wait_pend8021x(struct b
+  				 MAX_WAIT_FOR_8021X_TX);
+  
+  	if (!err)
+diff --git a/package/kernel/mac80211/patches/brcm/384-v5.4-0001-Revert-brcmfmac-fix-NULL-pointer-derefence-during-US.patch b/package/kernel/mac80211/patches/brcm/384-v5.4-0001-Revert-brcmfmac-fix-NULL-pointer-derefence-during-US.patch
+index 45a9a339fad..b01db877bbf 100644
+--- a/package/kernel/mac80211/patches/brcm/384-v5.4-0001-Revert-brcmfmac-fix-NULL-pointer-derefence-during-US.patch
++++ b/package/kernel/mac80211/patches/brcm/384-v5.4-0001-Revert-brcmfmac-fix-NULL-pointer-derefence-during-US.patch
+@@ -71,10 +71,10 @@ Signed-off-by: Kalle Valo <kvalo@codeaurora.org>
+  
+ -	brcmf_proto_detach_pre_delif(drvr);
+ -
+- 	/* make sure primary interface removed last */
+- 	for (i = BRCMF_MAX_IFS-1; i > -1; i--)
+- 		brcmf_remove_interface(drvr->iflist[i], false);
+-@@ -1346,7 +1344,7 @@ void brcmf_detach(struct device *dev)
++ 	if (drvr->mon_if) {
++ 		brcmf_net_detach(drvr->mon_if->ndev, false);
++ 		drvr->mon_if = NULL;
++@@ -1351,7 +1349,7 @@ void brcmf_detach(struct device *dev)
+  
+  	brcmf_bus_stop(drvr->bus_if);
+  
+diff --git a/package/kernel/mac80211/patches/brcm/384-v5.4-0002-brcmfmac-change-the-order-of-things-in-brcmf_detach.patch b/package/kernel/mac80211/patches/brcm/384-v5.4-0002-brcmfmac-change-the-order-of-things-in-brcmf_detach.patch
+index d40bf031b88..4385dc730ed 100644
+--- a/package/kernel/mac80211/patches/brcm/384-v5.4-0002-brcmfmac-change-the-order-of-things-in-brcmf_detach.patch
++++ b/package/kernel/mac80211/patches/brcm/384-v5.4-0002-brcmfmac-change-the-order-of-things-in-brcmf_detach.patch
+@@ -25,7 +25,7 @@ Signed-off-by: Kalle Valo <kvalo@codeaurora.org>
+ 
+ --- a/drivers/net/wireless/broadcom/brcm80211/brcmfmac/core.c
+ +++ b/drivers/net/wireless/broadcom/brcm80211/brcmfmac/core.c
+-@@ -1328,25 +1328,26 @@ void brcmf_detach(struct device *dev)
++@@ -1328,12 +1328,11 @@ void brcmf_detach(struct device *dev)
+  	unregister_inet6addr_notifier(&drvr->inet6addr_notifier);
+  #endif
+  
+@@ -35,31 +35,36 @@ Signed-off-by: Kalle Valo <kvalo@codeaurora.org>
+ -		brcmf_p2p_detach(&drvr->config->p2p);
+ -
+  	brcmf_bus_change_state(bus_if, BRCMF_BUS_DOWN);
+--
+--	/* make sure primary interface removed last */
+++	brcmf_bus_stop(drvr->bus_if);
+++
+++	brcmf_fweh_detach(drvr);
+++	brcmf_proto_detach(drvr);
++ 
++ 	if (drvr->mon_if) {
++ 		brcmf_net_detach(drvr->mon_if->ndev, false);
++@@ -1341,17 +1340,19 @@ void brcmf_detach(struct device *dev)
++ 	}
++ 
++ 	/* make sure primary interface removed last */
+ -	for (i = BRCMF_MAX_IFS-1; i > -1; i--)
+ -		brcmf_remove_interface(drvr->iflist[i], false);
+ -
+ -	brcmf_cfg80211_detach(drvr->config);
+ -	drvr->config = NULL;
+ -
+- 	brcmf_bus_stop(drvr->bus_if);
+- 
+-+	brcmf_fweh_detach(drvr);
+- 	brcmf_proto_detach(drvr);
+- 
+-+	/* make sure primary interface removed last */
++-	brcmf_bus_stop(drvr->bus_if);
+ +	for (i = BRCMF_MAX_IFS - 1; i > -1; i--) {
+ +		if (drvr->iflist[i])
+ +			brcmf_del_if(drvr, drvr->iflist[i]->bsscfgidx, false);
+ +	}
+-+
++ 
++-	brcmf_proto_detach(drvr);
+ +	if (drvr->config) {
+ +		brcmf_p2p_detach(&drvr->config->p2p);
+ +		brcmf_cfg80211_detach(drvr->config);
+ +		drvr->config = NULL;
+ +	}
+-+
++ 
+  	bus_if->drvr = NULL;
+ +
+  	wiphy_free(drvr->wiphy);
+diff --git a/package/kernel/mac80211/patches/brcm/392-v5.4-0001-brcmfmac-move-cfg80211_ops-pointer-to-another-struct.patch b/package/kernel/mac80211/patches/brcm/392-v5.4-0001-brcmfmac-move-cfg80211_ops-pointer-to-another-struct.patch
+index b45c6fd2dbd..a56be4d35cc 100644
+--- a/package/kernel/mac80211/patches/brcm/392-v5.4-0001-brcmfmac-move-cfg80211_ops-pointer-to-another-struct.patch
++++ b/package/kernel/mac80211/patches/brcm/392-v5.4-0001-brcmfmac-move-cfg80211_ops-pointer-to-another-struct.patch
+@@ -74,7 +74,7 @@ Signed-off-by: Kalle Valo <kvalo@codeaurora.org>
+  
+  	return ret;
+  }
+-@@ -1374,6 +1375,8 @@ void brcmf_detach(struct device *dev)
++@@ -1379,6 +1380,8 @@ void brcmf_detach(struct device *dev)
+  
+  	bus_if->drvr = NULL;
+  
+diff --git a/package/kernel/mac80211/patches/brcm/392-v5.4-0002-brcmfmac-split-brcmf_attach-and-brcmf_detach-functio.patch b/package/kernel/mac80211/patches/brcm/392-v5.4-0002-brcmfmac-split-brcmf_attach-and-brcmf_detach-functio.patch
+index 827178b466a..e0211fadbd2 100644
+--- a/package/kernel/mac80211/patches/brcm/392-v5.4-0002-brcmfmac-split-brcmf_attach-and-brcmf_detach-functio.patch
++++ b/package/kernel/mac80211/patches/brcm/392-v5.4-0002-brcmfmac-split-brcmf_attach-and-brcmf_detach-functio.patch
+@@ -96,7 +96,7 @@ Signed-off-by: Kalle Valo <kvalo@codeaurora.org>
+  	if (ret != 0) {
+  		bphy_err(drvr, "dongle is not responding: err=%d\n", ret);
+  		goto fail;
+-@@ -1372,6 +1382,15 @@ void brcmf_detach(struct device *dev)
++@@ -1377,6 +1387,15 @@ void brcmf_detach(struct device *dev)
+  		brcmf_cfg80211_detach(drvr->config);
+  		drvr->config = NULL;
+  	}
+diff --git a/package/kernel/mac80211/patches/brcm/405-v5.5-brcmfmac-remove-monitor-interface-when-detaching.patch b/package/kernel/mac80211/patches/brcm/405-v5.5-brcmfmac-remove-monitor-interface-when-detaching.patch
+deleted file mode 100644
+index 6c325ee844c..00000000000
+--- a/package/kernel/mac80211/patches/brcm/405-v5.5-brcmfmac-remove-monitor-interface-when-detaching.patch
++++ /dev/null
+@@ -1,30 +0,0 @@
+-From: =?UTF-8?q?Rafa=C5=82=20Mi=C5=82ecki?= <rafal@milecki.pl>
+-Date: Mon, 18 Nov 2019 13:35:20 +0100
+-Subject: [PATCH 5.5] brcmfmac: remove monitor interface when detaching
+-MIME-Version: 1.0
+-Content-Type: text/plain; charset=UTF-8
+-Content-Transfer-Encoding: 8bit
+-
+-This fixes a minor WARNING in the cfg80211:
+-[  130.658034] ------------[ cut here ]------------
+-[  130.662805] WARNING: CPU: 1 PID: 610 at net/wireless/core.c:954 wiphy_unregister+0xb4/0x198 [cfg80211]
+-
+-Signed-off-by: Rafał Miłecki <rafal@milecki.pl>
+----
+- drivers/net/wireless/broadcom/brcm80211/brcmfmac/core.c | 5 +++++
+- 1 file changed, 5 insertions(+)
+-
+---- a/drivers/net/wireless/broadcom/brcm80211/brcmfmac/core.c
+-+++ b/drivers/net/wireless/broadcom/brcm80211/brcmfmac/core.c
+-@@ -1371,6 +1371,11 @@ void brcmf_detach(struct device *dev)
+- 	brcmf_fweh_detach(drvr);
+- 	brcmf_proto_detach(drvr);
+- 
+-+	if (drvr->mon_if) {
+-+		brcmf_net_detach(drvr->mon_if->ndev, false);
+-+		drvr->mon_if = NULL;
+-+	}
+-+
+- 	/* make sure primary interface removed last */
+- 	for (i = BRCMF_MAX_IFS - 1; i > -1; i--) {
+- 		if (drvr->iflist[i])
+diff --git a/package/kernel/mac80211/patches/rt2x00/020-cfg80211-add-ratelimited-variants-of-err-and-warn.patch b/package/kernel/mac80211/patches/rt2x00/020-cfg80211-add-ratelimited-variants-of-err-and-warn.patch
+index d06f502f5e1..8411f00cca8 100644
+--- a/package/kernel/mac80211/patches/rt2x00/020-cfg80211-add-ratelimited-variants-of-err-and-warn.patch
++++ b/package/kernel/mac80211/patches/rt2x00/020-cfg80211-add-ratelimited-variants-of-err-and-warn.patch
+@@ -25,7 +25,7 @@ Signed-off-by: Stanislaw Gruszka <sgruszka@redhat.com>
+ 
+ --- a/include/net/cfg80211.h
+ +++ b/include/net/cfg80211.h
+-@@ -6612,6 +6612,11 @@ bool cfg80211_iftype_allowed(struct wiph
++@@ -6627,6 +6627,11 @@ bool cfg80211_iftype_allowed(struct wiph
+  #define wiphy_info(wiphy, format, args...)			\
+  	dev_info(&(wiphy)->dev, format, ##args)
+  
+diff --git a/package/kernel/mac80211/patches/subsys/210-ap_scan.patch b/package/kernel/mac80211/patches/subsys/210-ap_scan.patch
+index ca5fb404838..214ec055390 100644
+--- a/package/kernel/mac80211/patches/subsys/210-ap_scan.patch
++++ b/package/kernel/mac80211/patches/subsys/210-ap_scan.patch
+@@ -1,6 +1,6 @@
+ --- a/net/mac80211/cfg.c
+ +++ b/net/mac80211/cfg.c
+-@@ -2238,7 +2238,7 @@ static int ieee80211_scan(struct wiphy *
++@@ -2188,7 +2188,7 @@ static int ieee80211_scan(struct wiphy *
+  		 * the  frames sent while scanning on other channel will be
+  		 * lost)
+  		 */
+diff --git a/package/kernel/mac80211/patches/subsys/303-mac80211-minstrel-Enable-STBC-and-LDPC-for-VHT-Rates.patch b/package/kernel/mac80211/patches/subsys/303-mac80211-minstrel-Enable-STBC-and-LDPC-for-VHT-Rates.patch
+index 661fb46ea47..5cce4936e14 100644
+--- a/package/kernel/mac80211/patches/subsys/303-mac80211-minstrel-Enable-STBC-and-LDPC-for-VHT-Rates.patch
++++ b/package/kernel/mac80211/patches/subsys/303-mac80211-minstrel-Enable-STBC-and-LDPC-for-VHT-Rates.patch
+@@ -20,16 +20,15 @@ Signed-off-by: Chaitanya TK <chaitanya.mgit@gmail.com>
+  #define IEEE80211_VHT_CAP_BEAMFORMEE_STS_SHIFT                  13
+ --- a/net/mac80211/rc80211_minstrel_ht.c
+ +++ b/net/mac80211/rc80211_minstrel_ht.c
+-@@ -1130,7 +1130,7 @@ minstrel_ht_update_caps(void *priv, stru
++@@ -1136,13 +1136,14 @@ minstrel_ht_update_caps(void *priv, stru
+  	struct minstrel_ht_sta_priv *msp = priv_sta;
+  	struct minstrel_ht_sta *mi = &msp->ht;
+  	struct ieee80211_mcs_info *mcs = &sta->ht_cap.mcs;
+ -	u16 sta_cap = sta->ht_cap.cap;
+ +	u16 ht_cap = sta->ht_cap.cap;
+  	struct ieee80211_sta_vht_cap *vht_cap = &sta->vht_cap;
+- 	struct sta_info *sinfo = container_of(sta, struct sta_info, sta);
+  	int use_vht;
+-@@ -1138,6 +1138,7 @@ minstrel_ht_update_caps(void *priv, stru
++ 	int n_supported = 0;
+  	int ack_dur;
+  	int stbc;
+  	int i;
+@@ -37,7 +36,7 @@ Signed-off-by: Chaitanya TK <chaitanya.mgit@gmail.com>
+  
+  	/* fall back to the old minstrel for legacy stations */
+  	if (!sta->ht_cap.ht_supported)
+-@@ -1175,16 +1176,24 @@ minstrel_ht_update_caps(void *priv, stru
++@@ -1180,16 +1181,24 @@ minstrel_ht_update_caps(void *priv, stru
+  	}
+  	mi->sample_tries = 4;
+  
+@@ -67,7 +66,7 @@ Signed-off-by: Chaitanya TK <chaitanya.mgit@gmail.com>
+  	for (i = 0; i < ARRAY_SIZE(mi->groups); i++) {
+  		u32 gflags = minstrel_mcs_groups[i].flags;
+  		int bw, nss;
+-@@ -1197,10 +1206,10 @@ minstrel_ht_update_caps(void *priv, stru
++@@ -1202,10 +1211,10 @@ minstrel_ht_update_caps(void *priv, stru
+  
+  		if (gflags & IEEE80211_TX_RC_SHORT_GI) {
+  			if (gflags & IEEE80211_TX_RC_40_MHZ_WIDTH) {
+diff --git a/package/kernel/mac80211/patches/subsys/304-mac80211-minstrel-remove-unnecessary-debugfs-cleanup.patch b/package/kernel/mac80211/patches/subsys/304-mac80211-minstrel-remove-unnecessary-debugfs-cleanup.patch
+index 95d4f294aaf..855babeccb0 100644
+--- a/package/kernel/mac80211/patches/subsys/304-mac80211-minstrel-remove-unnecessary-debugfs-cleanup.patch
++++ b/package/kernel/mac80211/patches/subsys/304-mac80211-minstrel-remove-unnecessary-debugfs-cleanup.patch
+@@ -96,7 +96,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
+  }
+ --- a/net/mac80211/rc80211_minstrel_ht.c
+ +++ b/net/mac80211/rc80211_minstrel_ht.c
+-@@ -1393,7 +1393,6 @@ static const struct rate_control_ops mac
++@@ -1397,7 +1397,6 @@ static const struct rate_control_ops mac
+  	.free = minstrel_ht_free,
+  #ifdef CPTCFG_MAC80211_DEBUGFS
+  	.add_sta_debugfs = minstrel_ht_add_sta_debugfs,
+diff --git a/package/kernel/mac80211/patches/subsys/305-mac80211-minstrel-merge-with-minstrel_ht-always-enab.patch b/package/kernel/mac80211/patches/subsys/305-mac80211-minstrel-merge-with-minstrel_ht-always-enab.patch
+index 9a233753ad8..fca3189e6dc 100644
+--- a/package/kernel/mac80211/patches/subsys/305-mac80211-minstrel-merge-with-minstrel_ht-always-enab.patch
++++ b/package/kernel/mac80211/patches/subsys/305-mac80211-minstrel-merge-with-minstrel_ht-always-enab.patch
+@@ -388,7 +388,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
+  };
+  
+  static u8 sample_table[SAMPLE_COLUMNS][MCS_GROUP_RATES] __read_mostly;
+-@@ -1146,12 +1142,10 @@ minstrel_ht_update_caps(void *priv, stru
++@@ -1151,12 +1147,10 @@ minstrel_ht_update_caps(void *priv, stru
+  
+  	BUILD_BUG_ON(ARRAY_SIZE(minstrel_mcs_groups) != MINSTREL_GROUPS_NB);
+  
+@@ -402,7 +402,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
+  
+  	msp->is_ht = true;
+  	memset(mi, 0, sizeof(*mi));
+-@@ -1226,10 +1220,9 @@ minstrel_ht_update_caps(void *priv, stru
++@@ -1231,10 +1225,9 @@ minstrel_ht_update_caps(void *priv, stru
+  
+  		/* HT rate */
+  		if (gflags & IEEE80211_TX_RC_MCS) {
+@@ -414,7 +414,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
+  			mi->supported[i] = mcs->rx_mask[nss - 1];
+  			if (mi->supported[i])
+  				n_supported++;
+-@@ -1349,16 +1342,88 @@ minstrel_ht_free_sta(void *priv, struct
++@@ -1353,16 +1346,88 @@ minstrel_ht_free_sta(void *priv, struct
+  	kfree(msp);
+  }
+  
+@@ -505,7 +505,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
+  }
+  
+  static u32 minstrel_ht_get_expected_throughput(void *priv_sta)
+-@@ -1417,14 +1482,14 @@ static void __init init_sample_table(voi
++@@ -1421,14 +1486,14 @@ static void __init init_sample_table(voi
+  }
+  
+  int __init
+diff --git a/package/kernel/mac80211/patches/subsys/306-mac80211-minstrel-reduce-minstrel_mcs_groups-size.patch b/package/kernel/mac80211/patches/subsys/306-mac80211-minstrel-reduce-minstrel_mcs_groups-size.patch
+index 02a0ca0a52b..019fb77d187 100644
+--- a/package/kernel/mac80211/patches/subsys/306-mac80211-minstrel-reduce-minstrel_mcs_groups-size.patch
++++ b/package/kernel/mac80211/patches/subsys/306-mac80211-minstrel-reduce-minstrel_mcs_groups-size.patch
+@@ -118,7 +118,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
+ -#define CCK_GROUP					\
+ +#define CCK_GROUP(_s)					\
+  	[MINSTREL_CCK_GROUP] = {			\
+- 		.streams = 0,				\
++ 		.streams = 1,				\
+  		.flags = 0,				\
+ +		.shift = _s,				\
+  		.duration = {				\
+@@ -218,7 +218,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
+  };
+  
+  static u8 sample_table[SAMPLE_COLUMNS][MCS_GROUP_RATES] __read_mostly;
+-@@ -307,7 +310,8 @@ minstrel_ht_get_tp_avg(struct minstrel_h
++@@ -308,7 +311,8 @@ minstrel_ht_get_tp_avg(struct minstrel_h
+  	if (group != MINSTREL_CCK_GROUP)
+  		nsecs = 1000 * mi->overhead / MINSTREL_TRUNC(mi->avg_ampdu_len);
+  
+@@ -228,7 +228,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
+  
+  	/*
+  	 * For the throughput calculation, limit the probability value to 90% to
+-@@ -755,12 +759,19 @@ minstrel_ht_tx_status(void *priv, struct
++@@ -756,12 +760,19 @@ minstrel_ht_tx_status(void *priv, struct
+  		minstrel_ht_update_rates(mp, mi);
+  }
+  
+@@ -249,7 +249,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
+  	unsigned int tx_time, tx_time_rtscts, tx_time_data;
+  	unsigned int cw = mp->cw_min;
+  	unsigned int ctime = 0;
+-@@ -779,8 +790,7 @@ minstrel_calc_retransmit(struct minstrel
++@@ -780,8 +791,7 @@ minstrel_calc_retransmit(struct minstrel
+  	mrs->retry_count_rtscts = 2;
+  	mrs->retry_updated = true;
+  
+@@ -259,7 +259,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
+  
+  	/* Contention time for first 2 tries */
+  	ctime = (t_slot * cw) >> 1;
+-@@ -874,20 +884,24 @@ minstrel_ht_get_max_amsdu_len(struct min
++@@ -875,20 +885,24 @@ minstrel_ht_get_max_amsdu_len(struct min
+  	int group = mi->max_prob_rate / MCS_GROUP_RATES;
+  	const struct mcs_group *g = &minstrel_mcs_groups[group];
+  	int rate = mi->max_prob_rate % MCS_GROUP_RATES;
+@@ -286,7 +286,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
+  		return 1600;
+  
+  	/*
+-@@ -895,7 +909,7 @@ minstrel_ht_get_max_amsdu_len(struct min
++@@ -896,7 +910,7 @@ minstrel_ht_get_max_amsdu_len(struct min
+  	 * rate success probability is less than 75%, limit A-MSDU to twice the usual
+  	 * data packet size
+  	 */
+@@ -295,7 +295,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
+  	    (minstrel_ht_get_prob_ewma(mi, mi->max_tp_rate[0]) <
+  	     MINSTREL_FRAC(75, 100)))
+  		return 3200;
+-@@ -942,13 +956,6 @@ minstrel_ht_update_rates(struct minstrel
++@@ -943,13 +957,6 @@ minstrel_ht_update_rates(struct minstrel
+  	rate_control_set_rates(mp->hw, mi->sta, rates);
+  }
+  
+diff --git a/package/kernel/mac80211/patches/subsys/307-mac80211-minstrel-fix-using-short-preamble-CCK-rates.patch b/package/kernel/mac80211/patches/subsys/307-mac80211-minstrel-fix-using-short-preamble-CCK-rates.patch
+deleted file mode 100644
+index 502d8c7768c..00000000000
+--- a/package/kernel/mac80211/patches/subsys/307-mac80211-minstrel-fix-using-short-preamble-CCK-rates.patch
++++ /dev/null
+@@ -1,31 +0,0 @@
+-From: Felix Fietkau <nbd@nbd.name>
+-Date: Sat, 10 Feb 2018 13:43:07 +0100
+-Subject: [PATCH] mac80211: minstrel: fix using short preamble CCK rates on
+- HT clients
+-
+-mi->supported[MINSTREL_CCK_GROUP] needs to be updated
+-
+-Fixes: 782dda00ab8e ("mac80211: minstrel_ht: move short preamble check out of get_rate")
+-Signed-off-by: Felix Fietkau <nbd@nbd.name>
+----
+-
+---- a/net/mac80211/rc80211_minstrel_ht.c
+-+++ b/net/mac80211/rc80211_minstrel_ht.c
+-@@ -1135,7 +1135,6 @@ minstrel_ht_update_caps(void *priv, stru
+- 	struct ieee80211_mcs_info *mcs = &sta->ht_cap.mcs;
+- 	u16 ht_cap = sta->ht_cap.cap;
+- 	struct ieee80211_sta_vht_cap *vht_cap = &sta->vht_cap;
+--	struct sta_info *sinfo = container_of(sta, struct sta_info, sta);
+- 	int use_vht;
+- 	int n_supported = 0;
+- 	int ack_dur;
+-@@ -1267,8 +1266,7 @@ minstrel_ht_update_caps(void *priv, stru
+- 	if (!n_supported)
+- 		goto use_legacy;
+- 
+--	if (test_sta_flag(sinfo, WLAN_STA_SHORT_PREAMBLE))
+--		mi->cck_supported_short |= mi->cck_supported_short << 4;
+-+	mi->supported[MINSTREL_CCK_GROUP] |= mi->cck_supported_short << 4;
+- 
+- 	/* create an initial rate table with the lowest supported rates */
+- 	minstrel_ht_update_stats(mp, mi);
+diff --git a/package/kernel/mac80211/patches/subsys/308-mac80211-minstrel-fix-CCK-rate-group-streams-value.patch b/package/kernel/mac80211/patches/subsys/308-mac80211-minstrel-fix-CCK-rate-group-streams-value.patch
+deleted file mode 100644
+index f0ffcd9655a..00000000000
+--- a/package/kernel/mac80211/patches/subsys/308-mac80211-minstrel-fix-CCK-rate-group-streams-value.patch
++++ /dev/null
+@@ -1,20 +0,0 @@
+-From: Felix Fietkau <nbd@nbd.name>
+-Date: Thu, 1 Mar 2018 13:27:54 +0100
+-Subject: [PATCH] mac80211: minstrel: fix CCK rate group streams value
+-
+-Fixes a harmless underflow issue when CCK rates are actively being used
+-
+-Signed-off-by: Felix Fietkau <nbd@nbd.name>
+----
+-
+---- a/net/mac80211/rc80211_minstrel_ht.c
+-+++ b/net/mac80211/rc80211_minstrel_ht.c
+-@@ -131,7 +131,7 @@
+- 
+- #define CCK_GROUP(_s)					\
+- 	[MINSTREL_CCK_GROUP] = {			\
+--		.streams = 0,				\
+-+		.streams = 1,				\
+- 		.flags = 0,				\
+- 		.shift = _s,				\
+- 		.duration = {				\
+diff --git a/package/kernel/mac80211/patches/subsys/309-mac80211-minstrel-fix-sampling-reporting-of-CCK-rate.patch b/package/kernel/mac80211/patches/subsys/309-mac80211-minstrel-fix-sampling-reporting-of-CCK-rate.patch
+deleted file mode 100644
+index e0049c36eb6..00000000000
+--- a/package/kernel/mac80211/patches/subsys/309-mac80211-minstrel-fix-sampling-reporting-of-CCK-rate.patch
++++ /dev/null
+@@ -1,58 +0,0 @@
+-From: Felix Fietkau <nbd@nbd.name>
+-Date: Thu, 1 Mar 2018 13:28:48 +0100
+-Subject: [PATCH] mac80211: minstrel: fix sampling/reporting of CCK rates
+- in HT mode
+-
+-Long/short preamble selection cannot be sampled separately, since it
+-depends on the BSS state. Because of that, sampling attempts to
+-currently not used preamble modes are not counted in the statistics,
+-which leads to CCK rates being sampled too often.
+-
+-Fix statistics accounting for long/short preamble by increasing the
+-index where necessary.
+-Fix excessive CCK rate sampling by dropping unsupported sample attempts.
+-
+-This improves throughput on 2.4 GHz channels
+-
+-Signed-off-by: Felix Fietkau <nbd@nbd.name>
+----
+-
+---- a/net/mac80211/rc80211_minstrel_ht.c
+-+++ b/net/mac80211/rc80211_minstrel_ht.c
+-@@ -281,7 +281,8 @@ minstrel_ht_get_stats(struct minstrel_pr
+- 				break;
+- 
+- 		/* short preamble */
+--		if (!(mi->supported[group] & BIT(idx)))
+-+		if ((mi->supported[group] & BIT(idx + 4)) &&
+-+		    (rate->flags & IEEE80211_TX_RC_USE_SHORT_PREAMBLE))
+- 			idx += 4;
+- 	}
+- 	return &mi->groups[group].rates[idx];
+-@@ -1080,18 +1081,23 @@ minstrel_ht_get_rate(void *priv, struct
+- 		return;
+- 
+- 	sample_group = &minstrel_mcs_groups[sample_idx / MCS_GROUP_RATES];
+-+	sample_idx %= MCS_GROUP_RATES;
+-+
+-+	if (sample_group == &minstrel_mcs_groups[MINSTREL_CCK_GROUP] &&
+-+	    (sample_idx >= 4) != txrc->short_preamble)
+-+		return;
+-+
+- 	info->flags |= IEEE80211_TX_CTL_RATE_CTRL_PROBE;
+- 	rate->count = 1;
+- 
+--	if (sample_idx / MCS_GROUP_RATES == MINSTREL_CCK_GROUP) {
+-+	if (sample_group == &minstrel_mcs_groups[MINSTREL_CCK_GROUP]) {
+- 		int idx = sample_idx % ARRAY_SIZE(mp->cck_rates);
+- 		rate->idx = mp->cck_rates[idx];
+- 	} else if (sample_group->flags & IEEE80211_TX_RC_VHT_MCS) {
+- 		ieee80211_rate_set_vht(rate, sample_idx % MCS_GROUP_RATES,
+- 				       sample_group->streams);
+- 	} else {
+--		rate->idx = sample_idx % MCS_GROUP_RATES +
+--			    (sample_group->streams - 1) * 8;
+-+		rate->idx = sample_idx + (sample_group->streams - 1) * 8;
+- 	}
+- 
+- 	rate->flags = sample_group->flags;
+diff --git a/package/kernel/mac80211/patches/subsys/322-mac80211-Add-airtime-accounting-and-scheduling-to-TX.patch b/package/kernel/mac80211/patches/subsys/322-mac80211-Add-airtime-accounting-and-scheduling-to-TX.patch
+index c8decd2f08a..955ae2a3376 100644
+--- a/package/kernel/mac80211/patches/subsys/322-mac80211-Add-airtime-accounting-and-scheduling-to-TX.patch
++++ b/package/kernel/mac80211/patches/subsys/322-mac80211-Add-airtime-accounting-and-scheduling-to-TX.patch
+@@ -125,7 +125,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
+   * The values are not guaranteed to be coherent with regard to each other, i.e.
+ --- a/net/mac80211/cfg.c
+ +++ b/net/mac80211/cfg.c
+-@@ -1434,6 +1434,9 @@ static int sta_apply_parameters(struct i
++@@ -1390,6 +1390,9 @@ static int sta_apply_parameters(struct i
+  	if (ieee80211_vif_is_mesh(&sdata->vif))
+  		sta_apply_mesh_params(local, sta, params);
+  
+@@ -330,7 +330,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
+  int sta_info_move_state(struct sta_info *sta,
+  			enum ieee80211_sta_state new_state)
+  {
+-@@ -2183,6 +2204,23 @@ void sta_set_sinfo(struct sta_info *sta,
++@@ -2187,6 +2208,23 @@ void sta_set_sinfo(struct sta_info *sta,
+  		sinfo->filled |= BIT_ULL(NL80211_STA_INFO_TX_FAILED);
+  	}
+  
+diff --git a/package/kernel/mac80211/patches/subsys/369-cfg80211-fix-memory-leak-in-cfg80211_cqm_rssi_update.patch b/package/kernel/mac80211/patches/subsys/369-cfg80211-fix-memory-leak-in-cfg80211_cqm_rssi_update.patch
+deleted file mode 100644
+index d2051407836..00000000000
+--- a/package/kernel/mac80211/patches/subsys/369-cfg80211-fix-memory-leak-in-cfg80211_cqm_rssi_update.patch
++++ /dev/null
+@@ -1,21 +0,0 @@
+-From: Felix Fietkau <nbd@nbd.name>
+-Date: Wed, 8 Jan 2020 18:03:04 +0100
+-Subject: [PATCH] cfg80211: fix memory leak in cfg80211_cqm_rssi_update
+-
+-The per-tid statistics need to be released after the call to rdev_get_station
+-
+-Cc: stable@vger.kernel.org
+-Fixes: 8689c051a201 ("cfg80211: dynamically allocate per-tid stats for station info")
+-Signed-off-by: Felix Fietkau <nbd@nbd.name>
+----
+-
+---- a/net/wireless/nl80211.c
+-+++ b/net/wireless/nl80211.c
+-@@ -10346,6 +10346,7 @@ static int cfg80211_cqm_rssi_update(stru
+- 		if (err)
+- 			return err;
+- 
+-+		cfg80211_sinfo_release_content(&sinfo);
+- 		if (sinfo.filled & BIT_ULL(NL80211_STA_INFO_BEACON_SIGNAL_AVG))
+- 			wdev->cqm_config->last_rssi_event_value =
+- 				(s8) sinfo.rx_beacon_signal_avg;
+diff --git a/package/kernel/mac80211/patches/subsys/370-cfg80211-fix-page-refcount-issue-in-A-MSDU-decap.patch b/package/kernel/mac80211/patches/subsys/370-cfg80211-fix-page-refcount-issue-in-A-MSDU-decap.patch
+deleted file mode 100644
+index 9dba58023d1..00000000000
+--- a/package/kernel/mac80211/patches/subsys/370-cfg80211-fix-page-refcount-issue-in-A-MSDU-decap.patch
++++ /dev/null
+@@ -1,25 +0,0 @@
+-From: Felix Fietkau <nbd@nbd.name>
+-Date: Mon, 13 Jan 2020 18:34:31 +0100
+-Subject: [PATCH] cfg80211: fix page refcount issue in A-MSDU decap
+-
+-The fragments attached to a skb can be part of a compound page. In that case,
+-page_ref_inc will increment the refcount for the wrong page. Fix this by
+-using get_page instead, which calls page_ref_inc on the compound head and
+-also checks for overflow.
+-
+-Fixes: 2b67f944f88c ("cfg80211: reuse existing page fragments in A-MSDU rx")
+-Cc: stable@vger.kernel.org
+-Signed-off-by: Felix Fietkau <nbd@nbd.name>
+----
+-
+---- a/net/wireless/util.c
+-+++ b/net/wireless/util.c
+-@@ -537,7 +537,7 @@ __frame_add_frag(struct sk_buff *skb, st
+- 	struct skb_shared_info *sh = skb_shinfo(skb);
+- 	int page_offset;
+- 
+--	page_ref_inc(page);
+-+	get_page(page);
+- 	page_offset = ptr - page_address(page);
+- 	skb_add_rx_frag(skb, sh->nr_frags, page, page_offset, len, size);
+- }
+diff --git a/package/kernel/mac80211/patches/subsys/522-mac80211_configure_antenna_gain.patch b/package/kernel/mac80211/patches/subsys/522-mac80211_configure_antenna_gain.patch
+index 2b3b1245e48..cf4fdc13e97 100644
+--- a/package/kernel/mac80211/patches/subsys/522-mac80211_configure_antenna_gain.patch
++++ b/package/kernel/mac80211/patches/subsys/522-mac80211_configure_antenna_gain.patch
+@@ -57,7 +57,7 @@
+  	__NL80211_ATTR_AFTER_LAST,
+ --- a/net/mac80211/cfg.c
+ +++ b/net/mac80211/cfg.c
+-@@ -2506,6 +2506,19 @@ static int ieee80211_get_tx_power(struct
++@@ -2456,6 +2456,19 @@ static int ieee80211_get_tx_power(struct
+  	return 0;
+  }
+  
+@@ -77,7 +77,7 @@
+  static int ieee80211_set_wds_peer(struct wiphy *wiphy, struct net_device *dev,
+  				  const u8 *addr)
+  {
+-@@ -3873,6 +3886,7 @@ const struct cfg80211_ops mac80211_confi
++@@ -3823,6 +3836,7 @@ const struct cfg80211_ops mac80211_confi
+  	.set_wiphy_params = ieee80211_set_wiphy_params,
+  	.set_tx_power = ieee80211_set_tx_power,
+  	.get_tx_power = ieee80211_get_tx_power,

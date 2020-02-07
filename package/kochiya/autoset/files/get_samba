@@ -1,0 +1,27 @@
+#!/bin/sh -e
+
+url=$(uci get samba.@samba[0].url)
+mkdir -p /var/samba
+cd /var/samba
+
+[ -f /usr/sbin/samba_multicall ] && {
+	if [ ! -h /usr/sbin/samba_multicall ]; then
+		exit
+	else
+		rm /usr/sbin/samba_multicall
+	fi
+}
+	
+[ ! -f /usr/sbin/samba_multicall ] && {
+	if [ -f /var/samba/samba_multicall ]; then
+		ln -s /var/samba/samba_multicall /usr/sbin/samba_multicall
+	else
+		/usr/bin/wget "$url"
+		tar -xzvf *.tar.gz
+		rm -rf samba*.tar.gz
+		chmod 0755 *
+		rm /usr/sbin/samba_multicall
+		ln -s /var/samba/samba_multicall /usr/sbin/samba_multicall
+	fi
+}
+
