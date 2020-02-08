@@ -15,7 +15,7 @@ PKG_SOURCE_URL:=https://github.com/aria2/aria2/releases/download/release-$(PKG_V
 PKG_HASH:=1e2b7fd08d6af228856e51c07173cfcf987528f1ac97e04c5af4a47642617dfd
 PKG_INSTALL:=1
 PKG_BUILD_PARALLEL:=1
-PKG_USE_MIPS16:=0
+#PKG_USE_MIPS16:=0
 
 PKG_MAINTAINER:=Imre Kaloz <kaloz@openwrt.org>, \
 	Hsing-Wang Liao <kuoruan@gmail.com>
