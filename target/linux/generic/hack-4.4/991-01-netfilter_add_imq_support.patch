@@ -1154,7 +1154,7 @@
 @@ -655,7 +655,10 @@
  	__u8			remcsum_offload:1;
  	__u8			gro_skip:1;
- 	/* 1 or 2 bit hole */
+ 	/* 2 or 4 bit hole */
 -
 +#if defined(CONFIG_IMQ) || defined(CONFIG_IMQ_MODULE)
 +	__u8			imq_flags:IMQ_F_BITS;
@@ -1252,19 +1252,19 @@
  
  #include "net-sysfs.h"
  
-@@ -2759,7 +2759,12 @@
- 	 * go to any taps (by definition we're trying to bypass them).
- 	 */
- 	if (!skb->fast_forwarded) {
+@@ -2929,7 +2932,12 @@ static int xmit_one(struct sk_buff *skb, struct net_device *dev,
+ 	unsigned int len;
+ 	int rc;
+ 
 +#if defined(CONFIG_IMQ) || defined(CONFIG_IMQ_MODULE)
 +	if ((!list_empty(&ptype_all) || !list_empty(&dev->ptype_all)) &&
 +		!(skb->imq_flags & IMQ_F_ENQUEUE))
 +#else
- 		if (!list_empty(&ptype_all))
+ 	if (!list_empty(&ptype_all) || !list_empty(&dev->ptype_all))
 +#endif
- 			dev_queue_xmit_nit(skb, dev);
- 	}
- 	
+ 		dev_queue_xmit_nit(skb, dev);
+ 
+ #ifdef CONFIG_ETHERNET_PACKET_MANGLE
 @@ -2788,6 +2796,7 @@ out:
  	*ret = rc;
  	return skb;
